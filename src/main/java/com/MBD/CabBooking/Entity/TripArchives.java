@@ -3,13 +3,9 @@ package com.MBD.CabBooking.Entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import javax.print.event.PrintJobAttributeEvent;
-
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import jakarta.persistence.CascadeType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,25 +15,20 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.ToString;
 
 @Entity
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode
-@ToString
+@AllArgsConstructor
 @DynamicInsert
 @DynamicUpdate
-public class TripBooking {
-	
-	  @Id
+public class TripArchives {
+	 @Id
 	   @GeneratedValue(strategy = GenerationType.IDENTITY)
 	   private Integer TripBookingId;
 	  
@@ -57,31 +48,28 @@ public class TripBooking {
 	    @FutureOrPresent(message = "{Please Eneter date of Present or Future}")
 	    @NotNull(message = "{Date cant be Null}")
 	    @DateTimeFormat(pattern = "yyyy-MM-dd")
-       private LocalDate Fromdate_time;
+     private LocalDate Fromdate_time;
 	    
 	    
 	    @FutureOrPresent(message = "{Please Eneter date of Present or Future}")
 	    @NotNull(message = "{Date cant be Null}")
 	    @DateTimeFormat(pattern = "yyyy-MM-dd")
-        private LocalDate Todate_time;
+      private LocalDate Todate_time;
 	   
-       private Integer km;
-       private Integer  Totalamount;
-       private Boolean Payment;
-       
-       
-       private LocalDateTime entryTime;
-       
-       @PrePersist
-       protected void onCreate() {
-    	    entryTime=LocalDateTime.now();
-       }
-       
-       
-       @ManyToOne()
-       @JoinColumn(name="Driver_id", referencedColumnName = "driverId")
-       private Driver driver;
-	
-	   
-	   
+     private Integer km;
+     private Integer  Totalamount;
+     private Boolean Payment;
+     
+     
+     private LocalDateTime entryTime;
+     
+     @PrePersist
+     protected void onCreate() {
+  	    entryTime=LocalDateTime.now();
+     }
+     
+     
+     @ManyToOne()
+     @JoinColumn(name="Driver_id", referencedColumnName = "driverId")
+     private Driver driver;
 }
