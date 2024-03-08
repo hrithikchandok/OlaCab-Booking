@@ -49,6 +49,19 @@ public class DriverController {
 		 
 	}
 	
+	@PutMapping("/avl")
+	public ResponseEntity<List<Driver>>  allavl()
+	{        List<Driver> ans=driverService.makeAllAvl();
+		 return new ResponseEntity<>(ans,HttpStatus.OK);
+		 
+	}
+	@PutMapping("/unavl")
+	public ResponseEntity<List<Driver>>  allunavl()
+	{        List<Driver> ans=driverService.makeAllUnAvl();
+		 return new ResponseEntity<>(ans,HttpStatus.OK);
+		 
+	}
+	
 	@DeleteMapping("/{id}")
 	public String deleteDriverById(@PathVariable("id") int id) {
 		return driverService.deleteDriverById(id);

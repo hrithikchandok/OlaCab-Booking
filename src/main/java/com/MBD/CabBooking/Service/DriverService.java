@@ -2,6 +2,8 @@ package com.MBD.CabBooking.Service;
 
 import java.util.List;
 
+import javax.lang.model.element.Element;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +64,43 @@ public class DriverService {
 		// TODO Auto-generated method stub
 		return driverRepo.findAll();
 //		return null;
+	}
+
+	public List<Driver> makeAllAvl() {
+		// TODO Auto-generated method stub
+	    List<Driver>tempDrivers=	driverRepo.findAll();
+	    
+	    for( Driver ele :tempDrivers)
+	    {
+	        ele.setAvailable(true);	
+//	        driverRepo.save(ele);
+	    }
+	    
+	    driverRepo.saveAll(tempDrivers);
+	    
+	    
+	    
+	    
+	    
+		return tempDrivers;
+	}
+	public List<Driver> makeAllUnAvl() {
+		// TODO Auto-generated method stub
+	    List<Driver>tempDrivers=	driverRepo.findAll();
+	    
+	    for( Driver ele :tempDrivers)
+	    {
+	        ele.setAvailable(false);	
+//	        driverRepo.save(ele);
+	    }
+	    
+	      driverRepo.saveAll(tempDrivers);
+	    
+	    
+	    
+	    
+	    
+		return tempDrivers;
 	}
 
 }
