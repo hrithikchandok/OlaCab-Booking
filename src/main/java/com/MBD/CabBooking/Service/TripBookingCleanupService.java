@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.MBD.CabBooking.Entity.Driver;
 import com.MBD.CabBooking.Entity.TripArchives;
 import com.MBD.CabBooking.Entity.TripBooking;
+import com.MBD.CabBooking.Repo.DriverRepo;
 import com.MBD.CabBooking.Repo.TripArchiveRepo;
 import com.MBD.CabBooking.Repo.TripRepo;
 
@@ -23,8 +25,11 @@ public class TripBookingCleanupService {
 	   private TripRepo tripRepo;
 	    @Autowired
 	    private TripArchiveRepo triparchiverepo;
+	    
+	    @Autowired
+	    private DriverRepo driverRepo;
 	
-	 @Scheduled(fixedRate = 3000)
+	 @Scheduled(fixedRate = 10 * 60 * 1000)
 	 public void cleanupTripBooking() 
 	 {
 	     LocalDateTime thresholdTime = LocalDateTime.now().minusMinutes(5); 
@@ -52,6 +57,11 @@ public class TripBookingCleanupService {
 			    	   tempArchives.setTodate_time(eleBooking.getTodate_time());
 			    	   
 			    	   
+			    	    Driver tempdriver= eleBooking.getDriver();
+			    	    tempdriver.setAvailable(true);
+			    	    
+			    	    driverRepo.save(tempdriver);
+			    	    
 			    	    archivedTransactions.add(tempArchives);
 			    	    
 			    	    tripRepo.deleteAll(outadedTripBookings);
