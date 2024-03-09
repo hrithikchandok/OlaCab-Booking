@@ -3,6 +3,7 @@ package com.MBD.CabBooking.Service;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import javax.print.event.PrintJobAttributeEvent;
@@ -15,7 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.MBD.CabBooking.Entity.Customer;
@@ -42,17 +45,20 @@ public class TripService {
 	@Autowired
 	private DriverRepo driverRepo;
 	
+	@Autowired
+	private EmailService emailService;
 	
 	@Autowired
 	private CabRepo cabRepo;
 	
-
+    @Transactional
 	public TripBooking AddTrip(@Valid TripBooking trip) {
 		
 		   
 		   Customer cus=customerRepo.findById(trip.getCustomerId()).orElseThrow(()->new ResourceNotFoundExcpetion("Customer","id", trip.getCustomerId()));
 //		   
 //		   List<Driver> drivers= driverRepo.findByAvailable() ;
+		   
 		   
 		   // get all the drivers having cabtype same as the requested 
 		   List<Driver>drivers=cabRepo.findDriversByCabType(trip.getCabType().toLowerCase());
@@ -77,10 +83,94 @@ public class TripService {
 		     }
 		     
 		     //sorting the available driver based first based on the rateperKm and if the rates are same then compare of rating 
-		     availableDrivers.forEach(obj->System.out.println(obj.getRatePerKm()+"and "+obj.getRating()));
+//		     availableDrivers.forEach(obj->System.out.println(obj.getRatePerKm()+"and "+obj.getRating()));
 		     Driver selected_Driver=availableDrivers.get(0);
 		     
-		     RestTemplate restTemplate = new RestTemplate();
+		       double distance=Distance(trip.getFrom_location(),trip.getTo_location());        
+		        trip.setTotalamount(selected_Driver.getRatePerKm()*(int)distance);	   
+		        
+		        trip.setKm((int)distance);
+		        trip.setDriver(selected_Driver);
+		        selected_Driver.setAvailable(false);
+		        
+		        String otp=generateOtp();
+		        sendBookingConfirmationEmail(cus.getEmail(), trip, otp, cus);
+//		        System.out.println(otp+"this is otp"+OTP);
+		        
+		        
+//		        String bodyString = "Dear " + cus.getUsername() + ",\r\n"
+//		        		+ "\r\n"
+//		        		+ "Your cab booking has been confirmed.\r\n"
+//		        		+ "\r\n"
+//		        		+ "Booking Details:\r\n"
+//		        		+ "- Pickup Location: " + trip.getFrom_location() + "\r\n"
+//		        		+ "- Destination: " + trip.getTo_location() + "\r\n"
+//		        		+ "- Date and Time: " + trip.getFromdate_time() + "\r\n"
+//		        		+ "- Cab Type: " + trip.getCabType() + "\r\n"
+//		        		+ "\r\n"
+//		        		+ "Please use the following OTP to confirm your booking:\r\n"
+//		        		+ "OTP: " + otp + "\r\n"
+//		        		+ "\r\n"
+//		        		+ "Thank you for choosing our cab service. We look forward to serving you!\r\n"
+//		        		+ "\r\n"
+//		        		+ "Best regards,\r\n"
+//		        		+ "Your Company Name";
+//		        
+//		        emailService.emailSimpleMesaage(cus.getEmail(),"OlaCab Booking Confirmation 🚖 OTP🔑",bodyString );
+		        
+		        
+		        
+		        driverRepo.save(selected_Driver);
+		        tripRepo.save(trip);
+		       
+		       
+		        
+		        		        		
+		        		
+		        return trip;
+		        
+		       
+            
+
+}
+    @Async
+    private void sendBookingConfirmationEmail(String email, TripBooking trip, String otp,Customer cus) {
+        String bodyString = "Dear " + cus.getUsername()+ ",\r\n"
+                            + "\r\n"
+                            + "Your cab booking has been confirmed.\r\n"
+                            + "\r\n"
+                            + "Booking Details:\r\n"
+                            + "- Pickup Location: " + trip.getFrom_location() + "\r\n"
+                            + "- Destination: " + trip.getTo_location() + "\r\n"
+                            + "- Date and Time: " + trip.getFromdate_time() + "\r\n"
+                            + "- Cab Type: " + trip.getCabType() + "\r\n"
+                            + "\r\n"
+                            + "Please use the following OTP to confirm your booking:\r\n"
+                            + "OTP: " + otp + "\r\n"
+                            + "\r\n"
+                            + "Thank you for choosing our cab service. We look forward to serving you!\r\n"
+                            + "\r\n"
+                            + "Best regards,\r\n"
+                            + "Your Company Name";
+        
+        emailService.emailSimpleMesaage(email, "OlaCab Booking Confirmation 🚖 OTP🔑", bodyString);
+    }
+    @Async
+    private String generateOtp() {
+    	 StringBuilder OTP=new StringBuilder();
+	        Random random=new Random();
+	        
+	        OTP.append((char)(random.nextInt(9)+'1'));
+	        
+	        for(int i=0;i<3;i++)
+	        {
+	        	OTP.append((char)(random.nextInt(10)+'0'));	 
+	        }
+	        return OTP.toString();
+    }
+    @Async
+public double Distance(String city1,String city2) {
+	   RestTemplate restTemplate = new RestTemplate();
 		  // Define URL
 		        String url = "https://distanceto.p.rapidapi.com/distance/route";
 		        
@@ -93,8 +183,8 @@ public class TripService {
 		        headers.set("X-RapidAPI-Key", "3bc4b9c0ddmshab1f5eef080c818p1a59ffjsn79d2cb3a2dd7"); 
 		        headers.set("X-RapidAPI-Host", "distanceto.p.rapidapi.com");
 		        
-		        String city1 = trip.getFrom_location();
-		        String city2 = trip.getTo_location();
+//		        String city1 = trip.getFrom_location();
+//		        String city2 = trip.getTo_location();
 		        String requestBody = String.format("{\"route\": [{\"name\": \"%s\"}, {\"name\": \"%s\"}]}", city1, city2);
 		        
 		     // Create HttpEntity with headers and body
@@ -120,33 +210,16 @@ public class TripService {
 		             distance = stepsNode.path("distance").path("car").path("distance").asDouble();
 		             duration = stepsNode.path("distance").path("car").path("duration").asDouble();
 
-		            System.out.println("Distance: " + distance);
-		            System.out.println("Duration: " + duration);
+//		            System.out.println("Distance: " + distance);
+//		            System.out.println("Duration: " + duration);
 		            
 		        } catch (Exception e) {
 		            // Handle JSON parsing exception
 		            e.printStackTrace();
 		        }
+		        return distance;
 		        
-		        trip.setTotalamount(selected_Driver.getRatePerKm()*(int)distance);	   
-		        
-		        trip.setKm((int)distance);
-		        trip.setDriver(selected_Driver);
-		        selected_Driver.setAvailable(false);
-		        
-		        
-		        
-		        driverRepo.save(selected_Driver);
-		        		tripRepo.save(trip);
-		        return trip;
-		        
-		       
-            
-
-		        
-		     
-	}
-
+}
 
 	public List<TripBooking> alltrip() {
 		// TODO Auto-generated method stub
@@ -178,5 +251,17 @@ public class TripService {
 	     driverRepo.save(driver);
 	     tripRepo.delete(trip);
 		return "Trip got Canceled , Driver get freed";
+	}
+
+
+	public TripBooking pay(int tripId) {
+		// TODO Auto-generated method stub
+		
+	 TripBooking tempBooking=	tripRepo.findById(tripId).orElseThrow(()->new ResourceNotFoundExcpetion("Trip","Id",tripId));
+		tempBooking.setPayment(true);
+		tripRepo.save(tempBooking);
+		return tempBooking;
+		
+//		return null;
 	}
 }

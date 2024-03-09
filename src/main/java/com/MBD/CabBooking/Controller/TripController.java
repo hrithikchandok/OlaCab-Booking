@@ -47,6 +47,12 @@ public class TripController {
 				
 		    	return tripService.deletetrip(id);
 			}
-	   
+		 
+		 
+		 @PutMapping("/pay/{tripId}")
+		 public TripBooking PayForTrip(@PathVariable int tripId)
+		 { 
+			  return tripService.pay(tripId);
+		 }
 	     
 }
