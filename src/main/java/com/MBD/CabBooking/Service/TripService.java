@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import javax.print.event.PrintJobAttributeEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -168,8 +169,11 @@ public class TripService {
 	        }
 	        return OTP.toString();
     }
-    @Async
+//    @Async
+    @Cacheable(value = "distanceCache", key = " #city1.compareTo(#city2)<0 ?  #city1.concat('-').concat(#city2) : #city2.concat('-').concat(#city1)")
 public double Distance(String city1,String city2) {
+    	
+    	System.out.println("distance is retrived from DB");
 	   RestTemplate restTemplate = new RestTemplate();
 		  // Define URL
 		        String url = "https://distanceto.p.rapidapi.com/distance/route";

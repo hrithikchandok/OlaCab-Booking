@@ -3,6 +3,7 @@ package com.MBD.CabBooking.Controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +30,12 @@ public class DriverController {
 	private DriverService driverService;
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<Driver> viewDriverById(@PathVariable("id") int id){
+	@Cacheable(value = "driver",key = "#id")
+	public Driver viewDriverById(@PathVariable("id") int id){
+//		System.out.println("DB is called");
 		Driver foundDriver= driverService.viewDriverById(id);
-		return new ResponseEntity<Driver>(foundDriver,HttpStatus.ACCEPTED);
+		return foundDriver;
+//		return new ResponseEntity<Driver>(foundDriver,HttpStatus.ACCEPTED);
 	} 
 	
 	@PostMapping("/")
