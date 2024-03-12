@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import javax.print.event.PrintJobAttributeEvent;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +49,11 @@ public class TripService {
 	
 	@Autowired
 	private CabRepo cabRepo;
+////	
+	@Autowired
+	private DistanceCalculator distanceCalculator;
+//	@Autowired
+//	private RedisTemplate<String, Double> redisTemplate;
 	
     @Transactional
 	public TripBooking AddTrip(@Valid TripBooking trip) {
@@ -87,8 +90,9 @@ public class TripService {
 //		     availableDrivers.forEach(obj->System.out.println(obj.getRatePerKm()+"and "+obj.getRating()));
 		     Driver selected_Driver=availableDrivers.get(0);
 		     
-		       double distance=Distance(trip.getFrom_location(),trip.getTo_location());        
-		        trip.setTotalamount(selected_Driver.getRatePerKm()*(int)distance);	   
+//		       double distance=Distance(,);   
+		       double distance=distanceCalculator.Distance(trip.getFrom_location(), trip.getTo_location());
+		    		   trip.setTotalamount(selected_Driver.getRatePerKm()*(int)distance);	   
 		        
 		        trip.setKm((int)distance);
 		        trip.setDriver(selected_Driver);
@@ -169,61 +173,7 @@ public class TripService {
 	        }
 	        return OTP.toString();
     }
-//    @Async
-    @Cacheable(value = "distanceCache", key = " #city1.compareTo(#city2)<0 ?  #city1.concat('-').concat(#city2) : #city2.concat('-').concat(#city1)")
-public double Distance(String city1,String city2) {
-    	
-    	System.out.println("distance is retrived from DB");
-	   RestTemplate restTemplate = new RestTemplate();
-		  // Define URL
-		        String url = "https://distanceto.p.rapidapi.com/distance/route";
-		        
-		     // Define HTTP method
-		        HttpMethod method = HttpMethod.POST; 
-		        
-		     // Set headers
-		        HttpHeaders headers = new HttpHeaders();
-		        headers.setContentType(MediaType.APPLICATION_JSON);
-		        headers.set("X-RapidAPI-Key", "3bc4b9c0ddmshab1f5eef080c818p1a59ffjsn79d2cb3a2dd7"); 
-		        headers.set("X-RapidAPI-Host", "distanceto.p.rapidapi.com");
-		        
-//		        String city1 = trip.getFrom_location();
-//		        String city2 = trip.getTo_location();
-		        String requestBody = String.format("{\"route\": [{\"name\": \"%s\"}, {\"name\": \"%s\"}]}", city1, city2);
-		        
-		     // Create HttpEntity with headers and body
-		        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
-		        
-		        // Execute the request
-		        ResponseEntity<String> responseEntity = restTemplate.exchange(url, method, requestEntity, String.class);
-		        
-		     // Process response
-		        HttpStatusCode statusCode = responseEntity.getStatusCode();
-		        String responseBody = responseEntity.getBody();
-		        
-//		        System.out.println(responseBody);
-		     // Parse JSON response using Jackson
-		        ObjectMapper objectMapper = new ObjectMapper();
-		        double distance=0.0;
-		        double duration=0.0;
-		        try {
-		            JsonNode jsonNode = objectMapper.readTree(responseBody);
-
-		            // Extract distance and duration from the "car" object within the "route" object
-		            JsonNode stepsNode = jsonNode.path("steps").get(0); // Assuming there's only one step
-		             distance = stepsNode.path("distance").path("car").path("distance").asDouble();
-		             duration = stepsNode.path("distance").path("car").path("duration").asDouble();
-
-//		            System.out.println("Distance: " + distance);
-//		            System.out.println("Duration: " + duration);
-		            
-		        } catch (Exception e) {
-		            // Handle JSON parsing exception
-		            e.printStackTrace();
-		        }
-		        return distance;
-		        
-}
+   
 
 	public List<TripBooking> alltrip() {
 		// TODO Auto-generated method stub
