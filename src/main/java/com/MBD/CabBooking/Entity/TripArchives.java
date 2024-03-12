@@ -1,5 +1,6 @@
 package com.MBD.CabBooking.Entity;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -27,7 +28,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @DynamicInsert
 @DynamicUpdate
-public class TripArchives {
+public class TripArchives implements Serializable {
 	 @Id
 	   @GeneratedValue(strategy = GenerationType.IDENTITY)
 	   private Integer TripBookingId;

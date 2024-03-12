@@ -3,6 +3,9 @@ package com.MBD.CabBooking.Controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.MBD.CabBooking.Entity.Driver;
 import com.MBD.CabBooking.Service.DriverService;
+import com.fasterxml.jackson.annotation.JacksonInject.Value;
 
 import jakarta.validation.Valid;
 
@@ -29,9 +33,12 @@ public class DriverController {
 	private DriverService driverService;
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<Driver> viewDriverById(@PathVariable("id") int id){
+	@Cacheable(value = "driver",key = "#id")
+	public Driver viewDriverById(@PathVariable("id") int id){
+//		System.out.println("DB is called");
 		Driver foundDriver= driverService.viewDriverById(id);
-		return new ResponseEntity<Driver>(foundDriver,HttpStatus.ACCEPTED);
+		return foundDriver;
+//		return new ResponseEntity<Driver>(foundDriver,HttpStatus.ACCEPTED);
 	} 
 	
 	@PostMapping("/")
@@ -43,19 +50,23 @@ public class DriverController {
 	}
 	
 	@PutMapping("/{driver_id}")
-	public ResponseEntity<Driver>  updateDriver(@PathVariable int driver_id ,@RequestParam int lic, @RequestParam Boolean avail)
+	@CachePut(value = "driver",key = "#driver_id")
+	public Driver  updateDriver(@PathVariable int driver_id ,@RequestParam int lic, @RequestParam Boolean avail)
 	{        Driver ans=driverService.update(driver_id,lic,avail);
-		 return new ResponseEntity<>(ans,HttpStatus.CREATED);
+//		 return new ResponseEntity<>(ans,HttpStatus.CREATED);
+	    return ans;
 		 
 	}
 	
 	@PutMapping("/avl")
+	 @CacheEvict(value = "drivers", allEntries = true)
 	public ResponseEntity<List<Driver>>  allavl()
 	{        List<Driver> ans=driverService.makeAllAvl();
 		 return new ResponseEntity<>(ans,HttpStatus.OK);
 		 
 	}
 	@PutMapping("/unavl")
+	 @CacheEvict(value = "drivers", allEntries = true)
 	public ResponseEntity<List<Driver>>  allunavl()
 	{        List<Driver> ans=driverService.makeAllUnAvl();
 		 return new ResponseEntity<>(ans,HttpStatus.OK);
@@ -63,6 +74,7 @@ public class DriverController {
 	}
 	
 	@DeleteMapping("/{id}")
+	@CacheEvict(value = "driver",key = "#id")
 	public String deleteDriverById(@PathVariable("id") int id) {
 		return driverService.deleteDriverById(id);
 	}
@@ -74,8 +86,9 @@ public class DriverController {
 		return new ResponseEntity<>(list,HttpStatus.ACCEPTED);
 	}
 	@GetMapping("")
-	public ResponseEntity<List<Driver>> getallDriver(){
+//	@Cacheable(value = "drivers1", key="'drivers1'")
+	public List<Driver> getallDriver(){
 		List<Driver> list=driverService.allDriver();
-		return new ResponseEntity<>(list,HttpStatus.ACCEPTED);
+		return list;
 	}
 }

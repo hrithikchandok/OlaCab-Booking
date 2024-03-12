@@ -1,5 +1,6 @@
 package com.MBD.CabBooking.Entity;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @PrimaryKeyJoinColumn(name = "driverId")
-public class Driver extends User{
+public class Driver extends User implements Serializable { 
     // You can add your fields here
 //	@Id
 //	@GeneratedValue(strategy = GenerationType.IDENTITY)

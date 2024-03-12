@@ -1,5 +1,6 @@
 package com.MBD.CabBooking.Entity;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -35,7 +36,7 @@ import lombok.ToString;
 @ToString
 @DynamicInsert
 @DynamicUpdate
-public class TripBooking {
+public class TripBooking implements Serializable {
 	
 	  @Id
 	   @GeneratedValue(strategy = GenerationType.IDENTITY)

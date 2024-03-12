@@ -1,5 +1,7 @@
 package com.MBD.CabBooking.Entity;
 
+import java.io.Serializable;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import lombok.Getter;
@@ -11,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Customer extends User {
+public class Customer extends User implements Serializable {
     // Customer-specific fields
 	
 	private String journey_status;
